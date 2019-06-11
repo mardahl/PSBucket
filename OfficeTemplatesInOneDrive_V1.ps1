@@ -25,7 +25,7 @@ Please credit me if you fint this script useful and do some cool things with it.
 #
 ####################################################
 
-# Put your Sharepoint ODOPEN URL here. replace the username in the "userEmail" part of the string with {0} like in the example string.
+# Put your Sharepoint ODOPEN URL here. Remove the &userEmail=xxx@xxxx.xxx part of the string
 $ODurl = 'odopen://sync/?scope=OPENLIST&siteId=f534557-942a-4d54-a373-9264641f08583&webId=c0d44985-f744-495a-9339-714d46646f9c&webTitle=Templates&listId=%7B8yyyC68D-YH33-478C-BDB9-88CE1E265488%7D&listTitle=Documents&listTemplateTypeId=101&webUrl=https%3A%2F%2Fcontoso.sharepoint.com%2Fsites%2FTemplates&webLogoUrl=_layouts%2F15%2Fimages%2Fsiteicon.png&webTemplate=7'
 
 # The destination folder that OneDrive creates (you need to manually sync the folder to a test client to determine what this ends up being (no trailing backslash please!)
