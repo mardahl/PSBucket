@@ -26,7 +26,7 @@ Please credit me if you fint this script useful and do some cool things with it.
 ####################################################
 
 # Put your Sharepoint ODOPEN URL here. replace the username in the "userEmail" part of the string with {0} like in the example string.
-$ODurl = 'odopen://sync/?scope=OPENLIST&siteId=f534557-942a-4d54-a373-9264641f08583&webId=c0d44985-f744-495a-9339-714d46646f9c&webTitle=Templates&listId=%7B8yyyC68D-YH33-478C-BDB9-88CE1E265488%7D&listTitle=Documents&userEmail={0}%40aasted.eu&listTemplateTypeId=101&webUrl=https%3A%2F%2Fcontoso.sharepoint.com%2Fsites%2FTemplates&webLogoUrl=_layouts%2F15%2Fimages%2Fsiteicon.png&webTemplate=7' -f "$env:USERNAME"
+$ODurl = 'odopen://sync/?scope=OPENLIST&siteId=f534557-942a-4d54-a373-9264641f08583&webId=c0d44985-f744-495a-9339-714d46646f9c&webTitle=Templates&listId=%7B8yyyC68D-YH33-478C-BDB9-88CE1E265488%7D&listTitle=Documents&listTemplateTypeId=101&webUrl=https%3A%2F%2Fcontoso.sharepoint.com%2Fsites%2FTemplates&webLogoUrl=_layouts%2F15%2Fimages%2Fsiteicon.png&webTemplate=7'
 
 # The destination folder that OneDrive creates (you need to manually sync the folder to a test client to determine what this ends up being (no trailing backslash please!)
 $SyncPath = "$($env:USERPROFILE)\Contoso Corp\Templates - Documents"
@@ -47,6 +47,7 @@ $OfficeVersionCode = "16.0"
 # Starting our logging to the users TEMP folder.
 $logfileName = "OfficeTemplatesInOneDrive_{0}.log" -f "$env:USERNAME"
 Start-Transcript -Path $(Join-Path $env:temp "$logfileName") -Force
+$ODurl = "$ODurl&userEmail=$(whoami /upn)"
 
 Write-Output "Adding folder to OneDrive for user: $($env:USERNAME) - URL: $ODurl"
 
