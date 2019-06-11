@@ -294,12 +294,11 @@ $csharpCode = @"
         }
     }
 "@
-    # Compiling the source code as csharp
+    # Importing the source code as csharp
     $compilerParams = [System.CodeDom.Compiler.CompilerParameters]::new()
-    $compilerParams.ReferencedAssemblies.AddRange(('System', 'System.Runtime.InteropServices'))
     $compilerParams.CompilerOptions = '/unsafe'
     $compilerParams.GenerateInMemory = $True
-    Add-Type -TypeDefinition $csharpCode -Language CSharp -CompilerParameters $compilerParams
+    Add-Type -ReferencedAssemblies 'System', 'System.Runtime.InteropServices' -TypeDefinition $csharpCode -Language CSharp -CompilerParameters $compilerParams
     # Adding powershell executeable to the command
     $Command = '{0}\System32\WindowsPowerShell\v1.0\powershell.exe -executionPolicy bypass {1}' -f $($env:windir),$Command
     # Adding double slashes to the command paths, as this is required.
