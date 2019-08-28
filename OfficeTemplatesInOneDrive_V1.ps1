@@ -45,37 +45,39 @@ $OfficeVersionCode = "16.0"
 # Now doing what needs to be done...
 
 # Starting our logging to the users TEMP folder.
-$logfileName = "OfficeTemplatesInOneDrive_{0}.log" -f "$env:USERNAME"
-Start-Transcript -Path $(Join-Path $env:temp "$logfileName") -Force
+$logfileName = "OfficeTemplatesInOneDrive_{0}.log" -f $env:USERNAME
+Start-Transcript -Path $(Join-Path -Path $env:TEMP -ChildPath $logfileName) -Force
 $ODurl = "$ODurl&userEmail=$(whoami /upn)"
 
 Write-Output "Adding folder to OneDrive for user: $($env:USERNAME) - URL: $ODurl"
 
 # Verifying that the folder does not already exists (If so it's likely they are already syncing it)
 # You will need to delete this folder and remove the sync from OneDrive settings, in order to reapply this script!
-if (Test-Path $SyncPath) {
+if (Test-Path -Path $SyncPath -PathType Container) {
     Write-Output "$($env:USERNAME) already has the folder in OneDrive!"
+    Stop-Transcript
     exit 0
 }
 
 # Telling OneDrive to sync the URL.
 try {
-    Start $ODurl -ErrorAction Stop
-} catch {
-    throw "failed to launch OneDrive with: $ODurl"
-} finally {
+    Start-Process $ODurl -ErrorAction Stop
+}
+catch {
+    throw "Failed to launch OneDrive with: $ODurl"
     Stop-Transcript
 }
 
-if($pinned){
-    sleep -Seconds 30 #lets just make sure we waited untill OneDrive has some data...
-    attrib.exe  +P -U "$SyncPath" /S /D
-    attrib.exe  +P -U "$SyncPath\*.*" /S /D
+if ($pinned) {
+    #Lets just make sure we waited untill OneDrive has some data...
+    while ($null -eq (Get-ChildItem -Path $SyncPath)) {
+        Start-Sleep -Seconds 30
+    }
+    New-PSDrive -Name $SyncPath -PSProvider FileSystem -Root $SyncPath -Persist
 }
 
 ### Setup Templates locations in Word, Excel and Powerpoint
 # Also sets the default startup Tab, so templates are shown
-
 
 # Word
 New-ItemProperty "HKCU:\Software\Microsoft\Office\$OfficeVersionCode\Word\Options" -Name "PersonalTemplates" -Value "$SyncPath\Word" -PropertyType ExpandString -Force -Confirm:$false
@@ -88,7 +90,6 @@ New-ItemProperty "HKCU:\Software\Microsoft\Office\$OfficeVersionCode\Excel\Optio
 # PowerPoint
 New-ItemProperty "HKCU:\Software\Microsoft\Office\$OfficeVersionCode\PowerPoint\Options" -Name "PersonalTemplates" -Value "$SyncPath\PowerPoint" -PropertyType ExpandString -Force -Confirm:$false
 New-ItemProperty "HKCU:\Software\Microsoft\Office\$OfficeVersionCode\PowerPoint\Options" -Name "officestartdefaulttab" -Value "1" -PropertyType DWord -Force -Confirm:$false
-
 
 Stop-Transcript
 
