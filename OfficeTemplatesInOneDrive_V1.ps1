@@ -12,7 +12,8 @@ VERSION: 1a
 PREREQ: Create a document library in SharePoint Online, and give the users "Viewer" permissions. (So they can't override templates).
         Create three subfolders named "Word", "Excel" and "PowerPoint" respectively, as registry entries will be made for these folders.
         Get the "ODurl" by pressing the "SYNC" button in the sharepoint site, using the old InternetExplorer, which will show the URL (Other browsers will just sync right away!)
-        It's very important that the URL be formattet correctly for use in this script, notice the -f parameter at the end of the ODurl string, when replacing it, read the comment before the string line!
+        It's very important that the URL be formattet correctly for use in this script, 
+        when replacing it, read the comment before the string line!
 .COPYRIGHT
 @michael_mardahl / https://www.iphase.dk
 Licensed under the MIT license.
