@@ -77,7 +77,7 @@ Function Get-AuthToken {
         $tokenEndpointUri = "$authority/oauth2/token"
   
         # Get the access token using grant type client_credentials for Application Permissions
-        $content = "grant_type=client_credentials&client_id=$ClientID&client_secret=$ClientSecret&resource=$resource"
+        $content = "grant_type=client_credentials&client_id=$ClientID&ClientSecret=$client_secret&resource=$resource"
 
         $response = Invoke-RestMethod -Uri $tokenEndpointUri -Body $content -Method Post -UseBasicParsing
 
