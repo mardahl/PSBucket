@@ -53,7 +53,7 @@ DO{
         Write-Host "Waiting a minute to chack again..." -ForegroundColor Yellow
         Start-Sleep -Seconds 60
     } else {
-        Write-Host "All looks goo, starting delta sync." -ForegroundColor Green
+        Write-Host "All looks good, starting delta sync." -ForegroundColor Green
 
         DO{
             try {
