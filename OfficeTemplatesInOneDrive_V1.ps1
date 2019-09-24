@@ -40,6 +40,53 @@ $OfficeVersionCode = "16.0"
 
 ####################################################
 #
+# FUNCTIONS SECTION
+#
+####################################################
+
+function WaitForOneDrive () {
+
+    <#
+    .SYNOPSIS
+    This function will check to see if OneDrive is Running on the local machine
+    .DESCRIPTION
+    The function poll's for the OneDrive process every second, and will resume script execution, once it's running
+    .EXAMPLE
+    WaitForOneDrive
+    .NOTES
+    NAME: WaitforOneDrive 
+    #>
+
+    $started = $false
+    $maxWaitSec = 300 #maximum number of seconds we are willing to wait for the OneDrive Process. (not an exact counter, might be a bit longer)
+    $wait = 0 #Initial Wait counter
+
+    Do {
+
+        $status = Get-Process OneDrive -ErrorAction SilentlyContinue #Looking for the OneDrive Process
+
+        If (!($status)) { 
+            Write-Output 'Waiting for OneDrive to start...'
+            Start-Sleep -Seconds 1 
+        } Else { 
+            Write-Output 'OneDrive has started yo!'
+            $started = $true 
+        }
+
+        $wait++ #increase wait counter
+
+        If ($wait -eq $maxWaitSec) {
+            Write-Output "Failed to find OneDrive Process. Exiting Script!"
+            Exit
+        }
+
+    }
+    Until ( $started )
+
+}
+
+####################################################
+#
 # EXECUTE SECTION
 #
 ####################################################
@@ -49,6 +96,9 @@ $OfficeVersionCode = "16.0"
 $logfileName = "OfficeTemplatesInOneDrive_{0}.log" -f $env:USERNAME
 Start-Transcript -Path $(Join-Path -Path $env:TEMP -ChildPath $logfileName) -Force
 $ODurl = "$ODurl&userEmail=$(whoami /upn)"
+
+# Waiting for OneDrive Process...
+WaitForOneDrive
 
 Write-Output "Adding folder to OneDrive for user: $($env:USERNAME) - URL: $ODurl"
 
