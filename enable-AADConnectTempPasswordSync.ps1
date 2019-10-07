@@ -2,6 +2,7 @@
 
 # Script to enable "change password on first logon" sync to Azure AD
 # @michael_mardahl on twitter
+# According to: https://docs.microsoft.com/en-us/azure/active-directory/hybrid/how-to-connect-password-hash-synchronization#public-preview-of-synchronizing-temporary-passwords-and-force-password-on-next-logon
 
 $AADConnector = Get-ADSyncConnector | Where-Object ListName -eq "Windows Azure Active Directory (Microsoft)"
 if ($AADConnector.count -eq 1) {
