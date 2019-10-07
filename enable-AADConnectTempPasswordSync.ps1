@@ -4,7 +4,7 @@
 # @michael_mardahl on twitter
 
 $AADConnector = Get-ADSyncConnector | Where-Object ListName -eq "Windows Azure Active Directory (Microsoft)"
-if ($AADConnector.count -eq 2) {
+if ($AADConnector.count -eq 1) {
 
     Write-Host "Enabling ForcePasswordResetOnLogonFeature on connector $($AADConnector.Name)." -ForegroundColor Green
     Set-ADSyncAADCompanyFeature -ConnectorName $AADConnector.Name -ForcePasswordResetOnLogonFeature $true
