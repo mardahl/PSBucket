@@ -1,4 +1,5 @@
 #Requires -RunAsAdministrator
+#Requires -module ActiveDirectory
 <#
 .SYNOPSIS
 This script will start a delta sync on the Azure AD Connect server
@@ -8,8 +9,8 @@ Quick script that looks for a newly create computer object in local AD, then mak
 Just run this script without any parameters as an admin account og the server hosting the AAD Connect tool
 .NOTES
 NAME: DeltaSync-ifNewPC.ps1
-VERSION: 1b
-PREREQ: RSAT AD tools feature needed
+VERSION: 1910.1
+PREREQ: ActiveDirectory PowerShell module
 .COPYRIGHT
 @michael_mardahl / https://www.iphase.dk
 Licensed under the MIT license.
@@ -24,7 +25,7 @@ $computersOU = "OU=MyComputers,DC=domain,DC=local"
 ### Script execution
 
 # Examining the specified computers OU. Determining if there was added a new device within the last hour
-Write-Host "Searching for newly joined computers. Stating AAD Sync as soon as the computers have has a UserCertificate populated..." -ForegroundColor Cyan
+Write-Host "Searching for newly joined computers. Starting AAD Sync as soon as the computers have a UserCertificate populated..." -ForegroundColor Cyan
 
 $allClear = $false
 DO{
@@ -50,7 +51,7 @@ DO{
     }
 
     if($missingCert){
-        Write-Host "Waiting a minute to chack again..." -ForegroundColor Yellow
+        Write-Host "Waiting a minute to check again..." -ForegroundColor Yellow
         Start-Sleep -Seconds 60
     } else {
         Write-Host "All looks good, starting delta sync." -ForegroundColor Green
