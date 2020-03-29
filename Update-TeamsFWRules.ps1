@@ -30,15 +30,16 @@
 #Requires -Version 3
 #Requires -Runasadministrator
 
-#----------------------------------------------------------[Declarations]----------------------------------------------------------
+#region Declarations
 
 #Define a log path (defaults to system, but will be copied to the users own temp after successful execution.)
 $logPath = join-path -path $($env:SystemRoot) -ChildPath "\TEMP\log_Update-TeamsFWRules.txt"
 
 #Enable forced rule creation, to cleanup any rules the user might have made, and set the standards imposed by this script (suggested setting $True).
 $Force = $True
+#endregion Declarations
 
-#-----------------------------------------------------------[Functions]------------------------------------------------------------
+#region functions
 
 Function Get-LoggedInUserProfile() {
 # Tries to figure out who is logged in and returns their user profile path
@@ -100,7 +101,9 @@ Function Set-TeamsFWRule($ProfileObj) {
         
 }
 
-#-----------------------------------------------------------[Execution]------------------------------------------------------------
+#endregion functions
+
+#region Exection
 
 #Start logging
 Start-Transcript $logPath -Force
@@ -127,3 +130,4 @@ Try {
     Stop-Transcript
 
 }
+#endregion Exection
