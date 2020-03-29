@@ -37,9 +37,10 @@ $logPath = join-path -path $($env:SystemRoot) -ChildPath "\TEMP\log_Update-Teams
 
 #Enable forced rule creation, to cleanup any rules the user might have made, and set the standards imposed by this script (suggested setting $True).
 $Force = $True
+
 #endregion Declarations
 
-#region functions
+#region Functions
 
 Function Get-LoggedInUserProfile() {
 # Tries to figure out who is logged in and returns their user profile path
@@ -101,9 +102,9 @@ Function Set-TeamsFWRule($ProfileObj) {
         
 }
 
-#endregion functions
+#endregion Functions
 
-#region Exection
+#region Execution
 
 #Start logging
 Start-Transcript $logPath -Force
@@ -130,4 +131,5 @@ Try {
     Stop-Transcript
 
 }
-#endregion Exection
+
+#endregion Execution
