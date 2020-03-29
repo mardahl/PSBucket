@@ -16,7 +16,7 @@
   Log file is copied to users own TEMP dir IF execution is successful.
 .NOTES
   Version:        1.0
-  Author:         Michale Mardahl
+  Author:         Michael Mardahl
   Twitter: @michael_mardahl
   Blogging on: www.iphase.dk and www.scconfigmgr.com
   Creation Date:  28 March 2020
