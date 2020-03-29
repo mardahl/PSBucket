@@ -21,12 +21,10 @@
   Blogging on: www.iphase.dk and www.scconfigmgr.com
   Creation Date:  28 March 2020
   Purpose/Change: Initial script development
-  
 .EXAMPLE
   .\Update-TeamsFWRule.ps1 -Force
   Adds the required Teams Firewall Rules
   Execute the script in SYSTEM context!
-
 #>
 
 #Requires -Version 3
