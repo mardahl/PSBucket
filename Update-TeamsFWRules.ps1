@@ -44,6 +44,7 @@ $Force = $True
 
 Function Get-LoggedInUserProfile() {
 # Tries to figure out who is logged in and returns their user profile path
+
     try {
     
        $loggedInUser = Gwmi -Class Win32_ComputerSystem | select username -ExpandProperty username
