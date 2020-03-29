@@ -1,71 +1,72 @@
 <#
 .SYNOPSIS
-    Creates firewall rules for Teams.
+    Creates firewall rules for Microsoft Teams.
     Modified substatially from Original version found at: https://docs.microsoft.com/en-us/microsoftteams/get-clients#sample-powershell-script
     by author.
 .DESCRIPTION
-    (c) Microsoft Corporation 2018. All rights reserved. Script provided as-is without any warranty of any kind. Use it freely at your own risks.
-    Must be run with elevated permissions. Designed to be run as user assigned PowerShell Script from Intune, or as a Scheduled Task run as SYSTEM at user login. 
+    (c) Microsoft Corporation 2018 and Michael Mardahl. All rights reserved. Script provided as-is without any warranty of any kind. Use it freely at your own risks.
+    Must be run with elevated permissions. 
+    Designed to be run as user assigned PowerShell Script from Intune, or as a Scheduled Task run as SYSTEM at user login. 
     The script will create a new inbound firewall rule for the currently logged in user. 
     Requires PowerShell 3.0.
+.INPUTS
+  None
+.OUTPUTS
+  Log file stored in %SystemDrive%\Windows\TEMP\log_Update-TeamsFWRules.txt
+  Log file is copied to users own TEMP dir IF execution is successful.
+.NOTES
+  Version:        1.0
+  Author:         Michale Mardahl
+  Twitter: @michael_mardahl
+  Blogging on: www.iphase.dk and www.scconfigmgr.com
+  Creation Date:  28 March 2020
+  Purpose/Change: Initial script development
+  
 .EXAMPLE
-    Execute the script in SYSTEM context.
-    .\Update-TeamsFWRule.ps1
-    Force the creation of the firewall rule even if Teams.exe is not detected:
-    .\Update-TeamsFWRule.ps1 -Force
-.AUTHOR
-    Michael Mardahl
-    Twitter: @michael_mardahl
-    Blogging on: www.iphase.dk and www.scconfigmgr.com
+  .\Update-TeamsFWRule.ps1 -Force
+  Adds the required Teams Firewall Rules
+  Execute the script in SYSTEM context!
+
 #>
 
 #Requires -Version 3
 #Requires -Runasadministrator
 
-[cmdletbinding()]
-param(
-    [Parameter(Mandatory=$false)]
-    [switch]$Force
-)
-
-#If running for Intune as a PowerShell Script, then you can enable the "Force" parameter by uncommenting the next line:
-$Force = $True
+#----------------------------------------------------------[Declarations]----------------------------------------------------------
 
 #Define a log path (defaults to system, but will be copied to the users own temp after successful execution.)
 $logPath = join-path -path $($env:SystemRoot) -ChildPath "\TEMP\log_Update-TeamsFWRules.txt"
 
-#Start log in windows temp folder 
-Start-Transcript $logPath -Force
+#Enable forced rule creation, to cleanup any rules the user might have made, and set the standards imposed by this script (suggested setting $True).
+$Force = $True
 
-###############################################################################################################
-#
-# Functions Section
-#
-###############################################################################################################
+#-----------------------------------------------------------[Functions]------------------------------------------------------------
 
 Function Get-LoggedInUserProfile() {
 # Tries to figure out who is logged in and returns their user profile path
     try {
+    
        $loggedInUser = Gwmi -Class Win32_ComputerSystem | select username -ExpandProperty username
        $username = ($loggedInUser -split "\\")[1]
-       Write-Verbose "Identified the current user as: $username" -Verbose
 
        #Identifying the correct path to the users profile folder - only selecting the first result in case there is a mess of profiles 
        #(which case you should do a clean up. As this script might not work in that case)
        $userProfile = Get-ChildItem (Join-Path -Path $env:SystemDrive -ChildPath 'Users') | Where-Object Name -Like "$username*" | select -First 1
        
     } catch [Exception] {
+    
        $Message = "Unable to find logged in users profile folder. User is not logged on to the primary session: $_"
        Throw $Message
+       
     }
 
     return $userProfile
 }
 
-
 Function Set-TeamsFWRule($ProfileObj) {
 # Setting up the inbound firewall rule required for optimal Microsoft Teams screensharing within a LAN.
-
+    
+    Write-Verbose "Identified the current user as: $($ProfileObj.Name)" -Verbose
     $progPath = Join-Path -Path $ProfileObj.FullName -ChildPath "AppData\Local\Microsoft\Teams\Current\Teams.exe"
 
     if ((Test-Path $progPath) -or ($Force)) {
@@ -86,7 +87,9 @@ Function Set-TeamsFWRule($ProfileObj) {
             New-NetFirewallRule -DisplayName "$ruleName" -Direction Inbound -Profile Public,Private -Program $progPath -Action Block -Protocol Any
 
         } else {
+        
             Write-Verbose "Rule already exists!" -Verbose
+            
         }
 
     } else {
@@ -98,12 +101,12 @@ Function Set-TeamsFWRule($ProfileObj) {
         
 }
 
-###############################################################################################################
-#
-# Execute Section
-#
-###############################################################################################################
+#-----------------------------------------------------------[Execution]------------------------------------------------------------
 
+#Start logging
+Start-Transcript $logPath -Force
+
+#Add rule to WFAS
 Try {
     
     Write-Output "Adding inbound Firewall rule for the currently logged in user."
