@@ -6,14 +6,14 @@ Script to monitor and alert on computer objects in Active Directory with missing
 .DESCRIPTION
 This script will compare a list of Computers within all the specified Organisational Units, with two AppLocker assignemnt Security Groups.
 The groups should include all those computer that have enforced AppLocker policies and those that are Exempt from the policies.
-If you have alot of different groups, you can have multiple copies of this script running for each of the assignemtn typoes that your organisation uses.
+If you have alot of different groups, you can have multiple copies of this script running for each of the assignmetn types that your organisation uses.
 .REQUIREMENTS
 This script requires the Active Directory PowerShell module which can be obtained by installing the RSAT windows feature.
 The script must be run by an account that has network access to enumerate computers and group members in active directory, specifically those that are configured in this script.
 The account must also have access to relay email messages through the specified SMTP server, unless it acts as an open relay.
 a Managed Service Account is prefered for security reasons.
 .EXAMPLE
-Testing the script requires that you have gone through the configuration section and modified to fit your environment.
+Testing the script requires that you have gone through the configuration section and modified it to fit your environment.
 You can test the script just by running it, to analyze the output and make sure everything works.
 .INSTALLATION
 Running the script from a scheduled task:
