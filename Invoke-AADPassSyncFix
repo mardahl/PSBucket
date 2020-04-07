@@ -1,0 +1,27 @@
+# Quick fix for Azure AD Connect Password sync issues
+# @michael_mardahl on Twitter.com
+# https://www.iphase.dk
+
+# This script assumes that you have one AAD Tenant and one local AD connected.
+# Otherwise you might have to manually enter the names of your ADConnector and your AADConnector within this script
+
+Import-Module ADSync
+
+$Connectors = Get-ADSyncConnector | select Name, Type
+
+$ADConnector  = $Connectors | Where-Object Type -EQ "AD" | select Name -ExpandProperty Name
+$AADConnector = $Connectors | Where-Object Name -Like "*AAD" | select Name -ExpandProperty Name
+
+Set-ADSyncScheduler -SchedulerSuspended $false
+
+$Connector = Get-ADSyncConnector -Name $ADConnector
+
+$Params = New-Object Microsoft.IdentityManagement.PowerShell.ObjectModel.ConfigurationParameter "Microsoft.Synchronize.ForceFullPasswordSync", String, ConnectorGlobal, $null, $null, $null
+$Params.Value = 1
+
+$Connector.GlobalParameters.Remove($Params.Name)
+$Connector.GlobalParameters.Add($Params)
+$Connector = Add-ADSyncConnector -Connector $Connector
+
+Set-ADSyncAADPasswordSyncConfiguration -SourceConnector $ADConnector -TargetConnector $AADConnector -Enable $false
+Set-ADSyncAADPasswordSyncConfiguration -SourceConnector $ADConnector -TargetConnector $AADConnector -Enable $true 
