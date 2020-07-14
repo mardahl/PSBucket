@@ -323,7 +323,7 @@ Function Delete-localAADAdmins(){
     .SYNOPSIS
     This function is used to remove all the AAD users from the built-in Administrators group
     .DESCRIPTION
-    The function connects generates the required commandline required in order to remove an Azure AD account from the local administrators group, and handle any errors.
+    The function generates the commandline required in order to remove an Azure AD account from the local administrators group, and handle any errors.
     IF all goes well, there will be no AAD accounts left in the built-in Administrators group.
     .EXAMPLE
     Delete-localAADAdmins
