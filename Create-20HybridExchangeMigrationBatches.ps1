@@ -40,7 +40,6 @@ $csvTempPath = ".\CSVfiles"
 #endregion Declarations
 
 #region Execute 
-
 Write-Verbose "Connecting to Exchange Online" -Verbose
 try {
     #Verify Exchange Online V2 modules are installed
@@ -113,5 +112,4 @@ Write-Verbose "Completed batch creation in Exchange Online." -Verbose
 Disconnect-ExchangeOnline -Confirm:$false
 
 Write-Verbose "End script." -Verbose
-
 #endregion Execute
