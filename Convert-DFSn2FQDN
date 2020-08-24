@@ -1,0 +1,75 @@
+<#
+.SYNOPSIS
+  Quick and dirty script to aid in converting a domain based DFS Namespace to FQDN as staded here:
+  https://support.microsoft.com/en-us/help/244380/how-to-configure-dfs-to-use-fully-qualified-domain-names-in-referrals
+ 
+.EXAMPLE
+ Run it from an adminsitrative PowerShell ISE session on each DFS Namespace member.
+ 
+.NOTES
+  Please remmeber to do a backup of all META data before using this script, and read the article!
+  I take no responsability for anything you do with this script.
+  
+  Author: Michael Mardahl 
+  Twitter: @michael_mardahl
+  Blog: msendpointmgr.com
+  License: MIT - leave author info
+#>
+
+#Requires -RunAsAdministrator
+
+$dfsrootFQDN = "contoso.local" #must be the root of the path you access DFS via.
+$dfsnode = $env:COMPUTERNAME
+
+
+#getting list of target namespaces
+$targets = Get-DfsnRoot | Select-Object Path -ExpandProperty Path
+
+#removing namespaces from members server that the script is being run on
+foreach ($path in $targets) {
+
+    $pathfix = $path -replace "$dfsrootFQDN","$dfsnode"
+    Remove-DfsnRootTarget -TargetPath $pathfix
+}
+
+Start-Sleep -Seconds 15
+
+#Enabling FQDN on the member server
+Set-DfsnServerConfiguration –ComputerName $dfsnode –UseFqdn $true
+
+Start-Sleep -Seconds 15
+
+#restarting services
+Stop-Service dfs; Start-Service dfs
+
+Start-Sleep -Seconds 15
+
+#Re-adding namespaces from active directory
+foreach ($path in $targets) {
+
+    $pathfix = $path -replace "koncern.local","$dfsnode"
+    Dfsutil target add $pathfix
+}
+
+
+#### TOOLS SECTION for advanced users
+<# run individually - DO NOT JUST EXECUTE ALL THIS CODE!
+
+
+#BACKUP NAMESPACE METADATA TO FILE - test and adjust the array index of $name if needed.
+
+$targets = Get-DfsnRoot | Select-Object Path -ExpandProperty Path
+foreach ($path in $targets) {
+
+    $name = $path -split "\\"
+    $destination = "c:\$($name[3])-dfsBAK.txt"
+    dfsutil.exe root export $path > $destination
+}
+
+# manual import (make sure you replaced all netbios values in the export with FQDN values)
+dfsutil.exe root import set c:\namespace-dfsBAK.txt \\contoso.local\DFSNamespace
+
+# Cleanup of broken Namesapce, if you had an accident and need to rebuild it, then cleanup with this and manually re-create the namespace - then wait for replication - the import from backup with the above command.
+Remove-DfsnRootTarget -TargetPath \\namesapceMember.contoso.local\DFSNamespace -Path \\contoso.local\DFSNamespace -Cleanup
+
+#>
