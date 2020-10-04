@@ -12,9 +12,11 @@
     At the time of writing this, non-interactive login does not support replacing the authentication phone method.
     
     Autor: Michael Mardahl / github.com/Mardahl / @michael_mardahl
-   
-  .LICENSE
-    MIT standard license applies, please credit me if you learned something from this.
+    License: MIT standard license applies, please credit me if you learned something from this.
+    
+  .EXAMPLE
+    Install the Microsoft.Graph module and execute script without parameters after updating the "declarations" region of the script.
+    https://github.com/microsoftgraph/msgraph-sdk-powershell/blob/dev/samples/0-InstallModule.ps1
 
 #>
 #requires -module microsoft.graph
