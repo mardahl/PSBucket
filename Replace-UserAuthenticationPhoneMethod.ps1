@@ -13,7 +13,7 @@
     
     Autor: Michael Mardahl / github.com/Mardahl / @michael_mardahl
    
-  .LICENSING
+  .LICENSE
     MIT standard license applies, please credit me if you learned something from this.
 
 #>
