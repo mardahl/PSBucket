@@ -6,14 +6,14 @@
     This script will connect to the Microsoft Graph using the official PowerShell SDK and set/replace a specific users Mobile authentication details for MFA.
     This is just some example code for PoC.
     
-   .NOTES
+  .NOTES
     Using Device Code login might not work with PowerShell ISE, so please execute from regular PS session.
     Requires that the user authenticating the device code login has Authentication Administrator rights in AAD.
     At the time of writing this, non-interactive login does not support replacing the authentication phone method.
     
     Autor: Michael Mardahl / github.com/Mardahl / @michael_mardahl
    
-   .LICENSING
+  .LICENSING
     MIT standard license applies, please credit me if you learned something from this.
 
 #>
