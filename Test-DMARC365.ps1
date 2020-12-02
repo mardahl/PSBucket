@@ -33,7 +33,7 @@
 
 #region declarations
 
-$domainArray=@("apento.com","msendpointmgr.com","iphase.dk","microsoft.com")
+$domainArray = @("apento.com","msendpointmgr.com","iphase.dk","microsoft.com")
 
 #endregion declarations
 
