@@ -18,7 +18,7 @@
   Version:        1.0
   Author:         Michael Mardahl
   Twitter: @michael_mardahl
-  Blogging on: www.iphase.dk and www.scconfigmgr.com
+  Blogging on: www.iphase.dk and www.msendpointmgr.com
   Creation Date:  28 March 2020
   Purpose/Change: Initial script development
 .EXAMPLE
