@@ -11,12 +11,12 @@
     None
 
 .NOTES
-    Version       : 1.0b
+    Version       : 1.2b
     Author        : Michael Mardahl
     Twitter       : @michael_mardahl
-    Blogging on   : www.msendpointmgr.com
+    Blogging on   : iphase.dk & www.msendpointmgr.com
     Creation Date : 02 December 2020
-    Purpose/Change: Initial script development
+    Purpose/Change: Added record output
     License       : MIT (Leave author credits)
 
 .EXAMPLE
@@ -54,29 +54,34 @@ function getDomainInfo {
 
     #Set values to not found
     $resultMX = "N/A";$resultDMARC = "N/A"; $resultDKIM = "N/A"; $resultSPF = "N/A"
+    $resultMXRecord = "N/A";$resultDMARCRecord = "N/A"; $resultDKIMRecord = "N/A"; $resultSPFRecord = "N/A"
 
     #Testing MX, SPF, DMARC and DKIM
     if(Resolve-DnsName $FQDN -Type MX | select NameExchange -First 1 -ExpandProperty NameExchange){
 
         $resultMX = "Present"
+        $resultMXRecord = Resolve-DnsName $FQDN -Type MX | select NameExchange -First 1 -ExpandProperty NameExchange
 
     }
 
     if(Resolve-DnsName $FQDN -Type TXT | Where-Object Strings -ILike "v=spf1*"){
 
         $resultSPF ="Present"
+        $resultSPFRecord = Resolve-DnsName $FQDN -Type TXT | Where-Object Strings -ILike "v=spf1*" | select Strings -ExpandProperty Strings
 
     }
 
     if(Resolve-DnsName "_dmarc.$FQDN" -Type TXT | Where-Object Strings -ILike "v=DMARC1*"){
 
         $resultDMARC = "Present"
+        $resultDMARCRecord = Resolve-DnsName "_dmarc.$FQDN" -Type TXT | Where-Object Strings -ILike "v=DMARC1*" | select Strings -ExpandProperty Strings
 
     }
 
     if((Resolve-DnsName "selector1._domainkey.$FQDN" -Type CNAME) -or (Resolve-DnsName "selector2._domainkey.$FQDN" -Type CNAME)){
 
         $resultDKIM = "Present"
+        $resultDKIMRecord = "$(Resolve-DnsName "selector1._domainkey.$FQDN" -Type CNAME | select NameHost -ExpandProperty NameHost -ErrorAction SilentlyContinue) | $(Resolve-DnsName "selector2._domainkey.$FQDN" -Type CNAME | select NameHost -ExpandProperty NameHost -ErrorAction SilentlyContinue)"
 
     }
 
@@ -84,9 +89,13 @@ function getDomainInfo {
 
         DomainName          = $FQDN
         DMARC               = $resultDMARC
+        DMARCRecord         = $resultDMARCRecord
         MX                  = $resultMX
+        MXRecord            = $resultMXRecord
         SPF                 = $resultSPF
+        SPFRecord           = $resultSPFRecord
         DKIM                = $resultDKIM
+        DKIMRecord          = $resultDKIMRecord
 
     }
 
