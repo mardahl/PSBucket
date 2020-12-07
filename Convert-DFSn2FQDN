@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Quick and dirty script to aid in converting a domain based DFS Namespace to FQDN as staded here:
+  Quick and dirty script to aid in converting a domain based DFS Namespace to FQDN as stated here:
   https://support.microsoft.com/en-us/help/244380/how-to-configure-dfs-to-use-fully-qualified-domain-names-in-referrals
  
 .EXAMPLE
