@@ -69,7 +69,7 @@ foreach ($path in $targets) {
 # manual import (make sure you replaced all netbios values in the export with FQDN values)
 dfsutil.exe root import set c:\namespace-dfsBAK.txt \\contoso.local\DFSNamespace
 
-# Cleanup of broken Namesapce, if you had an accident and need to rebuild it, then cleanup with this and manually re-create the namespace - then wait for replication - the import from backup with the above command.
+# Cleanup of broken Namespace, if you had an accident and need to rebuild it, then cleanup with this and manually re-create the namespace - then wait for replication - the import from backup with the above command.
 Remove-DfsnRootTarget -TargetPath \\namesapceMember.contoso.local\DFSNamespace -Path \\contoso.local\DFSNamespace -Cleanup
 
 #>
