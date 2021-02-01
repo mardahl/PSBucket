@@ -3,22 +3,19 @@
         Creates about 20 Exchange Online Migration batches containing all the eligeble users in the On-prem Exchange Organization
 
     .DESCRIPTION
-        Can be used by lazy admins to simply create and start about 20 migration batches containing all the user synced
+        Can be used by admins to simply create and start about 20 migration batches containing all the user synced
         to Office 365 with the "MailUser" recipient type set.
         UPN's containing onmicrosoft.com will be skipped!
-
-    .INPUTS
-        None
+        The script can be run from your local computer as it connects onnly to exchange online.
+        If some users are missing, then make sure you have actually synced them from on-prem with AAD Connect.
 
     .OUTPUTS
-        None
+        A bunch of CSV files wit the users are left in your temp folder, depending on how you configure the declarations.
 
     .EXAMPLE
         Run the script without any parameters 
         .\Create-20HybridExchangeMigrationBatches.ps1
         
-    .LINK
-        Links to further documentation.
 
     .NOTES
         The script must be run interactively.
@@ -33,10 +30,10 @@
 #>
 
 #region Declarations
-$TargetDeliveryDomain = "TENANTNAME.mail.onmicrosoft.com"
-$notificationEmail = "myUser@domain.com"
-$badItemLimit = "1000"
-$csvTempPath = ".\CSVfiles"
+$TargetDeliveryDomain = "REPLACE-CAPS-WITH-TENANTNAME.mail.onmicrosoft.com"
+$notificationEmail = "myuser@mydomain.com" #will receive batch completion and failure notifications
+$badItemLimit = "1000" #Adjust as you see fit
+$csvTempPath = join-path "$env:temp" "\CSVTemp"
 #endregion Declarations
 
 #region Execute 
@@ -103,7 +100,7 @@ Do {
     #Create migration batch for each CSV
     $csvTempFile = Join-Path $csvTempPath "\batch$($batchCount).csv"
     $niceNumber = ([string]$batchCount).PadLeft(2,'0')
-    New-MigrationBatch -Name "AutoBatch$($niceNumber)" -SourceEndpoint "$SourceEndpoint" -CSVData ([System.IO.File]::ReadAllBytes("$csvTempFile")) -AutoStart -BadItemLimit $badItemLimit -TargetDeliveryDomain $TargetDeliveryDomain -NotificationEmails $notificationEmail -WhatIf
+    New-MigrationBatch -Name "AutoBatch$($niceNumber)" -SourceEndpoint "$SourceEndpoint" -CSVData ([System.IO.File]::ReadAllBytes("$csvTempFile")) -AutoStart -BadItemLimit $badItemLimit -TargetDeliveryDomain $TargetDeliveryDomain -NotificationEmails $notificationEmail
     $batchCount++
 } While ($batchCount -ne $fileCount)
 
