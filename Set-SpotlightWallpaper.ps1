@@ -15,6 +15,7 @@
     execute Set-SpotlightWallpaper.ps1
 .NOTES
     Made to be executed as the current user.
+    Script assumes that Spotlight always fetches images in FullHD 1920x1080 (portraid and landscape)
 #>
 #Requires -version 5.0
 
@@ -217,7 +218,12 @@ function Get-LatestSpotlightImage {
             }
         }
     }
-    return $fileName
+    if($filename){
+        return $fileName
+    } else {
+        Write-Error "The files in $SpotlightCachePath are not valid image files! - terminating script!"
+        exit 1
+    }
 }
 #endregion functions
 
