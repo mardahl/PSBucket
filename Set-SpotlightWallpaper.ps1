@@ -53,7 +53,11 @@ function Test-Image {
         }
 
          # read in the first 8 bits
-        $bytes = Get-Content -LiteralPath $Path -Encoding Byte -ReadCount 1 -TotalCount 8 -ErrorAction Ignore
+        if($PSVersionTable.PSEdition -eq "Core"){
+            $bytes = Get-Content -LiteralPath $Path -AsByteStream -ReadCount 1 -TotalCount 8 -ErrorAction Ignore
+        } else {
+            $bytes = Get-Content -LiteralPath $Path -Encoding Byte -ReadCount 1 -TotalCount 8 -ErrorAction Ignore
+        }
         $retval = $false
 
         foreach($key in $knownHeaders.Keys) {
