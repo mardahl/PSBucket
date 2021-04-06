@@ -4,17 +4,17 @@
 .DESCRIPTION
     This script will look in the Spotlight image cache and find the latest image, either Portrait or Landscape, and set is as declared in the script declarations.
 .NOTES
-  Version       : 1.0b
-  Author        : Michael Mardahl
-  Twitter       : @michael_mardahl
-  GitHub        : github.com/mardahl
-  Blogging on   : www.msendpointmgr.com
-  Creation Date : 06 April 2021
-  Purpose/Change: Initial script development
+    Version       : 1.0b
+    Author        : Michael Mardahl
+    Twitter       : @michael_mardahl
+    GitHub        : github.com/mardahl
+    Blogging on   : www.msendpointmgr.com
+    Creation Date : 06 April 2021
+    Purpose/Change: Initial script development
 .EXAMPLE
-  execute Set-SpotlightWallpaper.ps1
+    execute Set-SpotlightWallpaper.ps1
 .NOTES
-  Made to be executed as the current user.
+    Made to be executed as the current user.
 #>
 #Requires -version 5.0
 
@@ -29,7 +29,6 @@ $style = "Fill" # Fill, Fit, Stretch, Tile, Center, or Span
 #region functions
 
 function Test-Image {
-    
     #From Scripting guys blog: https://devblogs.microsoft.com/scripting/psimaging-part-1-test-image/
     [CmdletBinding()]
     [OutputType([System.Boolean])]
@@ -79,25 +78,18 @@ function Test-Image {
 }
 
 function Set-WallPaper {
- 
     <#
- 
         .SYNOPSIS
-        Applies a specified wallpaper to the current user's desktop
-    
+            Applies a specified wallpaper to the current user's desktop
         .PARAMETER Image
-        Provide the exact path to the image
- 
+            Provide the exact path to the image
         .PARAMETER Style
-        Provide wallpaper style (Example: Fill, Fit, Stretch, Tile, Center, or Span)
-  
+            Provide wallpaper style (Example: Fill, Fit, Stretch, Tile, Center, or Span)
         .EXAMPLE
-        Set-WallPaper -Image "C:\Wallpaper\Default.jpg"
-        Set-WallPaper -Image "C:\Wallpaper\Background.jpg" -Style Fit
-
+            Set-WallPaper -Image "C:\Wallpaper\Default.jpg"
+            Set-WallPaper -Image "C:\Wallpaper\Background.jpg" -Style Fit
         .NOTES
-        Copied from https://www.joseespitia.com/2017/09/15/set-wallpaper-powershell-function/
-  
+            Copied from https://www.joseespitia.com/2017/09/15/set-wallpaper-powershell-function/
     #>
     [CmdletBinding()]
     param (
@@ -162,21 +154,16 @@ public class Params
 function Get-LatestSpotlightImage {
 
     <#
- 
         .SYNOPSIS
-        Finds the latest lockscreen image from Microsoft Spotlight (needs to be enabled)
-    
+            Finds the latest lockscreen image from Microsoft Spotlight (needs to be enabled)
         .PARAMETER Orientation
-        Please provide the desired orientation of the wallpaper valid options are "Landscape" and "Portrait"
-  
+            Please provide the desired orientation of the wallpaper valid options are "Landscape" and "Portrait"
         .EXAMPLE
-        Get-LatestSpotlightImage -Orientation "Landscape"
-
+            Get-LatestSpotlightImage -Orientation "Landscape"
         .NOTES
-        Author: Michael Mardahl
-        License: MIT - credit author
-        GitHub: github.com/mardahl
-       
+            Author: Michael Mardahl
+            License: MIT - credit author
+            GitHub: github.com/mardahl
     #>
     [CmdletBinding()]
     param (
