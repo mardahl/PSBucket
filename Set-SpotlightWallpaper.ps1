@@ -183,12 +183,17 @@ function Get-LatestSpotlightImage {
         Write-Error "Spotlight not enabled for lockscreen, or no images cached in $SpotlightCachePath - terminating script!"
         exit 1
     } else {
-    
         #Load image assemblies
         [void][System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
     
         #Get the spotligt image files, newst first
         $latestImages = Get-ChildItem $SpotlightCachePath | Sort LastWriteTime -Descending 
+
+        #check for actual contents, no less than two files must be available.
+        if ($latestImages.Count -lt 2){
+            Write-Error "No Spotlight Images downloaded to $SpotlightCachePath - terminating script!"
+            exit 1
+        }
 
         #Find the latest image in the desired orientation
         foreach ( $image in $latestImages ) {
