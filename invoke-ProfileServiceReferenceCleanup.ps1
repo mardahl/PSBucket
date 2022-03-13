@@ -1,4 +1,4 @@
-#Quick and dirty script to fix "The group policy client service failed the sign-in" Access denied due to unexpected app instance reference count
+#Quick and dirty script to fix "The group policy client service failed the sign-in" Access denied due to unexpected app instance reference count on FSLogix profiles
 #https://techcommunity.microsoft.com/t5/azure-virtual-desktop/wvd-logon-issues-the-group-policy-client-service-failed-the-sign/m-p/1876481
 #by Michael Mardahl github.com/mardahl
 
