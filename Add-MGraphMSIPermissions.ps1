@@ -1,9 +1,9 @@
-/*
+<#
 .NOTES
 Quick and dirty script by Michael Mardahl (github.com/mardahl)
 
 A PS script to be executed from Azure Cloud Shell - granting multiple Microsoft Graph permissions to a Managed Identity
-*/
+#>
 
 $MGraphAppId = "00000003-0000-0000-c000-000000000000"
 $DisplayNameOfMSI="AA-MFA-Prepopulate"
