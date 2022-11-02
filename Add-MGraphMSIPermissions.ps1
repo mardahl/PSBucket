@@ -2,7 +2,7 @@
 .NOTES
 Quick and dirty script by Michael Mardahl (github.com/mardahl)
 
-A PS script to be executed from Azure Cloud Shell - granting multiple Microsoft Graph permissions to a Managed Identity
+A PS script to be executed from Azure Cloud Shell - granting multiple permissions to a Managed Identity
 
 This version of the script defaults to clearing out any previous permissions!
 
