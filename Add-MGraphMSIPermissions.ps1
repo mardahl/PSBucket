@@ -1,56 +1,110 @@
 <#
+.SYNOPSIS
+Granting single/multiple permissions to a Managed Identity using the Microsoft Graph Powershell SDK
+
+.DESCRIPTION
+This script will grant the specified permissions to the specified managed identity (MSI). 
+It will not remove any existing permissions, unless you set $clearExistingPermissions to $true.
+
+.PARAMETER APIAppName
+The display name of the resource (API) you want to grant permissions to (e.g. Microsoft Graph)
+
+.PARAMETER DisplayNameOfMSI
+The display name of your managed identity
+
+.PARAMETER Permissions
+The permissions to be granted (in powershell array format)
+Example: @("group.readwrite.all","user.read.all") #You can enter a single value here if you like.
+
+.PARAMETER ClearExistingPermissions
+If set to $true, existing permissions will be removed before applying the new permissions.
+
+.EXAMPLE
+Add-MGraphMSIPermissions.ps1 -APIAppName "Microsoft Graph" -DisplayNameOfMSI "myFunctionApp" -Permissions @("group.readwrite.all","user.read.all") -ClearExistingPermissions $true
+
 .NOTES
-Quick and dirty script by Michael Mardahl (github.com/mardahl)
-
-A PS script to be executed from Azure Cloud Shell - granting multiple permissions to a Managed Identity
-
-This version of the script defaults to clearing out any previous permissions!
+Script by Michael Mardahl (github.com/mardahl)
+Granting multiple permissions to a Managed Identity using the Microsoft Graph Powershell SDK
+Modified version of the Microsoft Github example
+use "install-module microsoft.graph" in you don't have the Microsoft Graph API Powershell SDK module installed
 
 #>
+#Requires -Modules Microsoft.Graph
 
 #region declarations
 
-#Application Id of the resource you want to grant permissions to (e.g. Microsoft Graph)
-$AppId = "00000003-0000-0000-c000-000000000000" #default is the MS Graph AppId
-
-#Display name of your managed identity
-$DisplayNameOfMSI="myCoolManagedIdentityName"
-
-#permissions to be granted (in powershell array format)
-$Permissions = @("group.readwrite.all","user.read.all") #You can enter a single value here if you like.
-
-#Clear existing permissions?
-$clearExistingPermissions = $true
+#parameter declarations that defaults to hardcoded values if not provided as parameters
+param(
+    [Parameter(Mandatory=$false)]
+    [string]$APIAppName = "Microsoft Graph",
+    [Parameter(Mandatory=$false)]
+    [string]$DisplayNameOfMSI = "MyAwesomeManagedIdentity",
+    [Parameter(Mandatory=$false)]
+    [array]$Permissions = @("group.readwrite.all","user.read.all"),
+    [Parameter(Mandatory=$false)]
+    [bool]$ClearExistingPermissions = $false
+)
 
 #endregion declarations
 
 #region execute
 
-#connect to Azure AD Powershell
-Connect-AzureAD
+# Define dynamic variables
+$ServicePrincipalFilter = "displayName eq '$($DisplayNameOfMSI)'" 
+$ApiServicePrincipalFilter = "displayName eq '$($APIAppName)'"
 
-# Get the Managed Identity Service Principal using displayName
-$MSI = (Get-AzureADServicePrincipal -Filter "displayName eq '$DisplayNameOfMSI'")
-start-sleep -seconds 3
+# Connect to MG Graph - scopes must be consented the first time you run this. 
+# Connect with Global Administrator account
+Select-MgProfile -Name "beta"
+Connect-MgGraph -Scopes "Application.Read.All","AppRoleAssignment.ReadWrite.All" -UseDeviceAuthentication
+
+# Get the service principal for your managed identity.
+$ServicePrincipal = Get-MgServicePrincipal -Filter $ServicePrincipalFilter
+
+# Get the service principal for Microsoft Graph. 
+# Result should be AppId 00000003-0000-0000-c000-000000000000
+$ApiServicePrincipal = Get-MgServicePrincipal -Filter "$ApiServicePrincipalFilter"
+if ($ApiServicePrincipal) {
+    write-host "Found API appId $($ApiServicePrincipal.Id)"
+} else {
+    Write-Error "No API exists for $APIAppName!"
+}
 
 #Remove existing permissions if $clearExistingPermissions is $true
 if($clearExistingPermissions) {
+    Write-Host "Removing existing permissions because `$clearExistingPermissions is set to `$true"
     # Get all application permissions for the managed identity service principal
-    $MSIApplicationPermissions = Get-AzureADServiceAppRoleAssignedTo -ObjectId $MSI.ObjectId -All $true | Where-Object { $_.PrincipalType -eq "ServicePrincipal" }
+    $MSIApplicationPermissions = Get-MgServicePrincipalAppRoleAssignment -ServicePrincipalId $ServicePrincipal.Id | Where-Object { $_.PrincipalType -eq "ServicePrincipal" }
 
     # Remove all application permissions for the managed identity service principal
     $MSIApplicationPermissions | ForEach-Object {
-        Remove-AzureADServiceAppRoleAssignment -ObjectId $_.PrincipalId -AppRoleAssignmentId $_.objectId
+        Write-Host "Removing App Role Assignment '$($_.Id)'"
+        Remove-MgServicePrincipalAppRoleAssignment -ServicePrincipalId $ServicePrincipal.Id -AppRoleAssignmentId $_.Id
     }
 }
 
-#Get service principal for the application that we are granting permissions to
-$ResourceServicePrincipal = Get-AzureADServicePrincipal -Filter "appId eq '$AppId'"
+# Apply permissions
+Foreach ($Scope in $Permissions) {
+    Write-Host "Getting App Role '$Scope'"
+    $AppRole = $ApiServicePrincipal.AppRoles | Where-Object {$_.Value -eq $Scope -and $_.AllowedMemberTypes -contains "Application"}
+    if ($null -eq $AppRole) {
+        Write-Error "Could not find the specified App Role on the Api Service Principal ($APIAppName)"
+        continue
+    }
+    if ($AppRole -is [array]) {
+        Write-Error "Multiple App Roles found that match the request"
+        Write-Host $AppRole.Value
+        continue
+    }
+    Write-Host "Found App Role, Id '$($AppRole.Id)'"
 
-#Setting permissions one at a time
-foreach ($PermissionName in $Permissions) {
-    $AppRole = $ResourceServicePrincipal.AppRoles | Where-Object {$_.Value -eq $PermissionName -and $_.AllowedMemberTypes -contains "Application"}
-    New-AzureAdServiceAppRoleAssignment -ObjectId $MSI.ObjectId -PrincipalId $MSI.ObjectId -ResourceId $ResourceServicePrincipal.ObjectId -Id $AppRole.Id
+    $ExistingRoleAssignment = Get-MgServicePrincipalAppRoleAssignment -ServicePrincipalId $ServicePrincipal.Id | Where-Object { $_.AppRoleId -eq $AppRole.Id }
+    if ($null -eq $existingRoleAssignment) {
+        Write-Host "Assigning App Role '$($AppRole.Value)' - $($AppRole.Description)"
+        New-MgServicePrincipalAppRoleAssignment -ServicePrincipalId $ServicePrincipal.Id -PrincipalId $ServicePrincipal.Id -ResourceId $ApiServicePrincipal.Id -AppRoleId $AppRole.Id
+    } else {
+        Write-Host "App Role has already been assigned, skipping"
+    }
 }
-
+Write-Host "Completed assigning permissions scopes for $DisplayNameOfMSI"
 #endregion execute
