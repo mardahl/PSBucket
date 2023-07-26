@@ -33,7 +33,8 @@ use "install-module microsoft.graph" in you don't have the Microsoft Graph API P
 
 #region declarations
 
-#parameter declarations that defaults to hardcoded values if not provided as parameters
+#parameter declarations that default to hardcoded values if not provided as parameters
+#Remember that you must enter the correct API name for the permission you are trying to assign. e.g. "Office 365 Exchange Online" if you want to do exchange online stuff.
 param(
     [Parameter(Mandatory=$false)]
     [string]$APIAppName = "Microsoft Graph",
@@ -54,8 +55,7 @@ $ServicePrincipalFilter = "displayName eq '$($DisplayNameOfMSI)'"
 $ApiServicePrincipalFilter = "displayName eq '$($APIAppName)'"
 
 # Connect to MG Graph - scopes must be consented the first time you run this. 
-# Connect with Global Administrator account
-Select-MgProfile -Name "beta"
+# Connect with Global Administrator account first time will make things easy for you.
 Connect-MgGraph -Scopes "Application.Read.All","AppRoleAssignment.ReadWrite.All" -UseDeviceAuthentication
 
 # Get the service principal for your managed identity.
