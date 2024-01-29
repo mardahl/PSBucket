@@ -21,43 +21,39 @@ $graphApiVersion = "beta"
 
 #region functions
 
-Function Write_Log
-	{
-		param(
+Function Write_Log {
+	param(
 		$Message_Type,	
 		$Message
-		)
-		
-		$MyDate = "[{0:MM/dd/yy} {0:HH:mm:ss}]" -f (Get-Date)		
-		Add-Content $Log_File  "$MyDate - $Message_Type : $Message"			
-		write-host  "$MyDate - $Message_Type : $Message"		
-	}
+	)
+	
+	$MyDate = "[{0:MM/dd/yy} {0:HH:mm:ss}]" -f (Get-Date)		
+	Add-Content $Log_File  "$MyDate - $Message_Type : $Message"			
+	write-host  "$MyDate - $Message_Type : $Message"		
+}
 
 #endregion functions
 
 #region execute
 	
 If(!(test-path $Log_File)){
-    new-item $Log_File -type file -force
+	new-item $Log_File -type file -force
 } else {	
-    #Clear detection debug log as it would grow too big from running each day.		
-    Clear-Content $Log_File -Force    
+	#Clear detection debug log as it would grow too big from running each day.		
+	Clear-Content $Log_File -Force    
 }
 
 $Module_Installed = $False
-If(!(Get-Module -listavailable | where {$_.name -like "*Microsoft.Graph.Intune*"})) 
-	{
+If(!(Get-Module -listavailable | where {$_.name -like "*Microsoft.Graph.Intune*"})){
 		Install-Module Microsoft.Graph.Intune -ErrorAction SilentlyContinue
 		$Module_Installed = $True		
-	} 
-Else 
-	{ 
+} Else { 
 		Import-Module Microsoft.Graph.Intune -ErrorAction SilentlyContinue
 		$Module_Installed = $True				
-	}
+}
 
 
-If($Module_Installed -eq $False) {
+If($Module_Installed -eq $False){
     Write_Log -Message_Type "INFO" -Message "Graph Intune module has not been imported"
     exit 1
 }
@@ -68,56 +64,49 @@ Update-MSGraphEnvironment -AppId $clientId -Quiet
 Update-MSGraphEnvironment -AuthUrl $authority -Quiet
 
 $Intune_Connected = $False	
-Try
-{
+Try{
 	Connect-MSGraph -ClientSecret $ClientSecret -Quiet
 	Write_Log -Message_Type "SUCCESS" -Message "Connected to Intune via Graph API"		
 
-}
-Catch
-{
+} Catch {
 	Write_Log -Message_Type "ERROR" -Message "Intune Graph API connection failed!"	
-    exit 1			
+	exit 1			
 }		
 
 
 $Computer = $env:COMPUTERNAME
 $Device_Found = $False
-Try
-{
+Try {
     $Get_MyDevice_Infos = Get-IntuneManagedDevice -filter "devicename eq '$Computer'" | Get-MSGraphAllPages
-    if($Get_MyDevice_Infos) {
+	if($Get_MyDevice_Infos) {
 		Write_Log -Message_Type "INFO" -Message "Device $Computer has been found on Intune as $($Get_MyDevice_Infos.id)"	
 		$Device_Found = $True
-    } else {
-        throw
-    }				
-}
-Catch
-{
+    	} else {
+        	throw
+    	}				
+} Catch {
 	Write_Log -Message_Type "INFO" -Message "Device $Computer has NOT been found on Intune"					
 	$Device_Found = $False				
 }
 				
-If($Device_Found -eq $True)	{
+If($Device_Found -eq $True){
 	$Get_MyDevice_ID = $Get_MyDevice_Infos.id
 	Write_Log -Message_Type "INFO" -Message "Device ID is: $Get_MyDevice_ID"				
-												
-				
+														
 	$Resource = "deviceManagement/managedDevices"
 	$uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)" + "/" + $Get_MyDevice_ID + "/users"
 	$Get_Primary_User_ID = ((Invoke-MSGraphRequest -Url $uri -HttpMethod Get).value.id).Trim()
 	Write_Log -Message_Type "INFO" -Message "Primary user ID is: $Get_Primary_User_ID"	
 
-    #verify primary user is allowed to be local admin
-    $allowedIds = (Get-Groups -groupId $allowedAdminsAADGroupID | Get-Groups_Members).id
+	#verify primary user is allowed to be local admin
+	$allowedIds = (Get-Groups -groupId $allowedAdminsAADGroupID | Get-Groups_Members).id
 	if($allowedIds -contains $Get_Primary_User_ID) {
-        Write_Log -Message_Type "INFO" -Message "Primary user ID found in Entra group ID: $allowedAdminsAADGroupID"
-        $removePrimary = $False
-    } else {
-        Write_Log -Message_Type "ERROR" -Message "Primary user ID NOT found in Entra group ID: $allowedAdminsAADGroupID. Set to remove!"
-        $removePrimary = $True
-    }
+		Write_Log -Message_Type "INFO" -Message "Primary user ID found in Entra group ID: $allowedAdminsAADGroupID"
+		$removePrimary = $False
+	} else {
+		Write_Log -Message_Type "ERROR" -Message "Primary user ID NOT found in Entra group ID: $allowedAdminsAADGroupID. Set to remove!"
+		$removePrimary = $True
+	}
 												
 	function Convert-ObjectIdToSid
 	{
@@ -131,60 +120,53 @@ If($Device_Found -eq $True)	{
 	$Get_Local_AdminGroup = Gwmi win32_group -Filter "Domain='$env:computername' and SID='S-1-5-32-544'"
 	$Get_Local_AdminGroup_Name = $Get_Local_AdminGroup.Name
 	Write_Log -Message_Type "INFO" -Message "Admin group name is: $Get_Local_AdminGroup_Name"
-                
-    #Get the built-in Admin name (no matter what the language)
-	$Get_Administrator_Name = (Get-CimInstance -ClassName Win32_UserAccount -Filter "LocalAccount = TRUE and SID like 'S-1-5-%-500'").Name					
-	$adminsArray += $Get_Administrator_Name.Trim()
-    Write_Log -Message_Type "INFO" -Message "Admin user name is: $Get_Administrator_Name"
-               
-    $Local_Admin_Group_Infos = ([ADSI]"WinNT://$env:COMPUTERNAME").psbase.children.find("$Get_Local_AdminGroup_Name")
+		              
+	$Local_Admin_Group_Infos = ([ADSI]"WinNT://$env:COMPUTERNAME").psbase.children.find("$Get_Local_AdminGroup_Name")
 	$Get_Local_AdminGroup_Members = $Local_Admin_Group_Infos.psbase.invoke("Members")
 				
-    #Determine if Primary user is already in Local Admins Group
-    $Get_Primary_User_Name = "unknown"
-    $localSIDs = (Get-childItem ‘HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList’ | % {Get-ItemProperty $_.pspath }) | select ProfileImagePath, PSChildName
-    foreach($item in $localSIDs){
-        #Getting the uasername from SID va registry
-        if(($item.PSChildName).trim() -eq $Get_SID) {
-            $Get_Primary_User_Name = $item.ProfileImagePath.Split('\')[-1]
-        }
-    }
+	#Determine if Primary user is already in Local Admins Group
+	$Get_Primary_User_Name = "unknown"
+	$localSIDs = (Get-childItem ‘HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList’ | % {Get-ItemProperty $_.pspath }) | select ProfileImagePath, PSChildName
+	foreach($item in $localSIDs){
+		#Getting the username from SID via registry
+		if(($item.PSChildName).trim() -eq $Get_SID) {
+			$Get_Primary_User_Name = $item.ProfileImagePath.Split('\')[-1]
+		}
+	}
 
-    foreach ($Member in $Get_Local_AdminGroup_Members) {
+	foreach ($Member in $Get_Local_AdminGroup_Members) {
 		$Get_AdminAccount_ADS_Path = $Member.GetType().InvokeMember('Adspath','GetProperty',$null,$Member,$null) 
 		$Account_Infos = $Get_AdminAccount_ADS_Path.split('/',[StringSplitOptions]::RemoveEmptyEntries)
 		$User_Name = $Account_Infos[-1]
+	
+	        #DETERMINE REMEDIATION
+	
+	        #User is found in local admins and should not be removed
+	        if(($User_Name -eq $Get_Primary_User_Name) -and ($removePrimary -eq $False)) {
+			Write_Log -Message_Type "INFO" -Message "User $Get_Primary_User_Name found and should not be removed"
+			Write-Output "found - dont remediate"
+			exit 0
+	        }
+	        #User is found in local admins and should be removed
+	        if(($User_Name -eq $Get_Primary_User_Name) -and ($removePrimary -eq $True)) {
+			Write_Log -Message_Type "INFO" -Message "User $Get_Primary_User_Name found and should be removed because they are no longer in the group."
+			Write-Output "found - remediate"
+			exit 1
+	        }
+    	}
 
-        #DETERMINE REMEDIATION
-
-        #User is found in local admins and should not be removed
-        if(($User_Name -eq $Get_Primary_User_Name) -and ($removePrimary -eq $False)) {
-            Write_Log -Message_Type "INFO" -Message "User $Get_Primary_User_Name found and should not be removed"
-            Write-Output "found - dont remediate"
-            exit 0
-        }
-        #User is found in local admins and should be removed
-        if(($User_Name -eq $Get_Primary_User_Name) -and ($removePrimary -eq $True)) {
-            Write_Log -Message_Type "INFO" -Message "User $Get_Primary_User_Name found and should be removed because they are no longer in the group."
-            Write-Output "found - remediate"
-            exit 1
-        }
+	#User is NOT found in local admins and should NOT be removed
+	if($removePrimary -eq $False) {
+		Write_Log -Message_Type "INFO" -Message "User $Get_Primary_User_Name ($Get_Primary_User_ID) not found and should not be removed"
+		Write-Output "not found - remediate"
+		exit 1
 	}
-
-    #User is NOT found in local admins and should NOT be removed
-    if($removePrimary -eq $False) {
-        Write_Log -Message_Type "INFO" -Message "User $Get_Primary_User_Name ($Get_Primary_User_ID) not found and should not be removed"
-        Write-Output "not found - remediate"
-        exit 1
-    }
-    #User is NOT found in local admins and should be removed
-    if($removePrimary -eq $True) {
-        Write_Log -Message_Type "INFO" -Message "User $Get_Primary_User_Name ($Get_Primary_User_ID) not found and should not even be there, so let's just quit!"
-        Write-Output "not found - dont remediate"
-        exit 0
-    }
-                    				
+	#User is NOT found in local admins and should be removed
+	if($removePrimary -eq $True) {
+		Write_Log -Message_Type "INFO" -Message "User $Get_Primary_User_Name ($Get_Primary_User_ID) not found and should not even be there, so let's just quit!"
+		Write-Output "not found - dont remediate"
+		exit 0
+	}
 }
-
 
 #endregion execute
