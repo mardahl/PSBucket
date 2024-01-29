@@ -12,9 +12,8 @@
 
 $tenant = "xxxxxxxxx.onmicrosoft.com" #onmicrosoft.com name
 $clientId = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxx" #App API premissions on Graph API as Application should be DeviceManagementManagedDevices.Read.All and GroupMember.Read.All and user.readBasic.All
-$clientSecret = "wresxxxxxxxxxxxrthsruo"
+$clientSecret = "xxxxxxxxxxxxxxxxxxxxxxxxxxx"
 $Log_File = "$($env:windir)\debug\Add_local_admin_DETECTION.log"
-$adminsArray = @("lapsAdmin") #List of admins not to remove besides the built-in admin
 $allowedAdminsAADGroupID = "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxx" #Object ID of group that lists who is allowed to be local admins on their devices.
 $graphApiVersion = "beta"
 
