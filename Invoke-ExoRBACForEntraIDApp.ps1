@@ -5,6 +5,7 @@
 .DESCRIPTION
     This script will create an intermediary Service Principal in Exchange Online and add the required roles to it. 
     The intermediary Service Principal will be scoped to a native Administrative Unit in Exchange Online.
+    You must have added a mailbox to the adminsitrative unit, so the test on the last line can work.
 
 .EXAMPLE
     Adjust the Declarations with values from Entra ID and Exchange Online Application Roles and run the script.
@@ -28,7 +29,7 @@ $EntraAppId = "cergerg7-9erte-4er5-9ff3-171ywershg8" #From the App Reg, not the 
 $EntraAppObectId = "0dtyjhh6-ert5-u6t7-afgg-dsgsg06a" #From the App Reg, not the Enterprise App
 $EntraAdministativeUnitObjectId = "ceggss8-eegsegf-4sgd-8gb0-c8gg23eggf3b" #The Entra ID native Administrative unit Object Id
 $ExoAppRoles = @("Application Calendars.ReadWrite","Application Mail.ReadWrite") #Native Exchange Online App Roles
-
+$mailboxForAccessVerification = "companymailbox@comapny.org"
 #executing the connection to Exchange Online
 Connect-ExchangeOnline
 
@@ -40,15 +41,16 @@ foreach ($role in $ExoAppRoles) {
     #Writting what roles is being added to the intermediary Service Principal
     Write-Host "Adding role $role to $EntraAppName"
     try {
-        $result = Get-ManagementRoleAssignment -App $exoSP.AppId -Role $role -RecipientAdministrativeUnitScope $EntraAdministativeUnitObjectId
+        New-ManagementRoleAssignment -App $exoSP.AppId -Role $role -RecipientAdministrativeUnitScope $EntraAdministativeUnitObjectId
     }
     catch {
-        Write-Host "Role $role not found on $EntraAppName"
+        Write-Host "Role $role not set on $EntraAppName"
         #writing the exception message
         Write-Host $_.Exception.Message
     }
 }
+
+#test command
+Test-ServicePrincipalAuthorization -Identity $exoSP.AppId -resource $mailboxForAccessVerification
+
 Disconnect-ExchangeOnline
-exit 0
-#test command for manual execution use once you are done.
-Test-ServicePrincipalAuthorization -Identity $exoSP.AppId -resource "name@domain.com"
